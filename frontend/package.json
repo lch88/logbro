@@ -1,5 +1,5 @@
 {
-  "name": "viewlog-frontend",
+  "name": "logbro-frontend",
   "private": true,
   "type": "module",
   "scripts": {

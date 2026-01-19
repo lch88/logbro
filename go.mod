@@ -1,4 +1,4 @@
-module viewlog
+module logbro
 
 go 1.25.4
 

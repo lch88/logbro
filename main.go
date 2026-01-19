@@ -12,9 +12,9 @@ import (
 	"runtime"
 	"syscall"
 
-	"viewlog/internal/buffer"
-	"viewlog/internal/parser"
-	"viewlog/internal/server"
+	"logbro/internal/buffer"
+	"logbro/internal/parser"
+	"logbro/internal/server"
 )
 
 var (
@@ -30,7 +30,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Printf("viewlog %s\n", Version)
+		fmt.Printf("logbro %s\n", Version)
 		return
 	}
 

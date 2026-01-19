@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"viewlog/internal/models"
+	"logbro/internal/models"
 )
 
 // Ring is a thread-safe ring buffer for log entries

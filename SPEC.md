@@ -1,23 +1,23 @@
-# ViewLog - Log Viewer Application Specification
+# LogBro - Log Viewer Application Specification
 
 ## Overview
 
-ViewLog is a command-line log viewer that reads log data from standard input and presents it through an interactive web interface. It enables developers and operators to pipe logs from any source and view them in a structured, filterable, and real-time streaming format.
+LogBro is a command-line log viewer that reads log data from standard input and presents it through an interactive web interface. It enables developers and operators to pipe logs from any source and view them in a structured, filterable, and real-time streaming format.
 
 ## Usage Example
 
 ```bash
 # Pipe logs directly
-tail -f /var/log/app.log | viewlog
+tail -f /var/log/app.log | logbro
 
 # From docker
-docker logs -f container_name | viewlog
+docker logs -f container_name | logbro
 
 # From kubectl
-kubectl logs -f pod_name | viewlog
+kubectl logs -f pod_name | logbro
 
 # From any command
-my-app serve 2>&1 | viewlog
+my-app serve 2>&1 | logbro
 ```
 
 ## Architecture
@@ -103,7 +103,7 @@ my-app serve 2>&1 | viewlog
 
 #### CLI Flags
 ```
-viewlog [flags]
+logbro [flags]
 
 Flags:
   -p, --port int        HTTP server port (default: 8080)
@@ -286,7 +286,7 @@ Server → Client Messages:
 cd backend && go run .
 
 # Frontend (separate terminal)
-cd frontend && npm run dev
+cd frontend && bun run dev
 ```
 
 ### Production Build
@@ -296,16 +296,16 @@ cd frontend && npm run dev
 
 ```bash
 # Build produces single binary
-go build -o viewlog
+go build -o logbro
 
 # Usage
-./viewlog
+./logbro
 ```
 
 ## Project Structure
 
 ```
-viewlog/
+logbro/
 ├── main.go                 # Entry point
 ├── internal/
 │   ├── server/

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"viewlog/internal/models"
+	"logbro/internal/models"
 )
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {

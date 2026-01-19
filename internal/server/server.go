@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"viewlog/internal/buffer"
+	"logbro/internal/buffer"
 )
 
 //go:embed static/*
@@ -53,9 +53,9 @@ func New(buf *buffer.Ring, port int) *Server {
 			w.Header().Set("Content-Type", "text/html")
 			w.Write([]byte(`<!DOCTYPE html>
 <html>
-<head><title>ViewLog</title></head>
+<head><title>LogBro</title></head>
 <body>
-<h1>ViewLog</h1>
+<h1>LogBro</h1>
 <p>Frontend not embedded. Run with embedded frontend or start frontend dev server.</p>
 </body>
 </html>`))

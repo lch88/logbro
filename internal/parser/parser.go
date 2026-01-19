@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"viewlog/internal/models"
+	"logbro/internal/models"
 )
 
 // Common log level patterns
