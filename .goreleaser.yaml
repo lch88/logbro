@@ -84,11 +84,10 @@ homebrew_casks:
     directory: Casks    
     homepage: "https://github.com/lch88/logbro"
     description: "Log viewer for stdin logs"
-    skip_upload: true 
-    repository:      
+    repository:
       owner: lch88
       name: homebrew-tap
-      branch: main            
+      branch: main
     commit_author:
       name: lch88
       email: lch88@gmail.com
