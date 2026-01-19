@@ -75,13 +75,12 @@ homebrew_casks:
     url:      
       template: "https://github.com/lch88/logbro/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
       verified: "github.com/lch88/logbro/"
-      using: ":homebrew_curl"
       cookies:
         license: "accept-backup"
       headers:
         - "X-Version: {{ .Version }}"
     commit_msg_template: "Brew cask update for {{ .ProjectName }} version {{ .Tag }}"
-    directory: Casks    
+    directory: Casks
     homepage: "https://github.com/lch88/logbro"
     description: "Log viewer for stdin logs"
     repository:
