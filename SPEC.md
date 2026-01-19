@@ -20,6 +20,29 @@ kubectl logs -f pod_name | logbro
 my-app serve 2>&1 | logbro
 ```
 
+## Tech Stack
+
+### Backend
+- **Language:** Go 1.25+
+- **HTTP Server:** Go standard library `net/http`
+- **WebSocket:** `github.com/gorilla/websocket`
+- **Static Files:** Embedded using Go `embed` directive
+
+### Frontend
+- **Build Tool:** Vite 7.x
+- **Framework:** React 19.x
+- **Routing:** TanStack React Router
+- **Styling:** TailwindCSS 4.x
+- **UI Components:** shadcn/ui (built on Radix UI primitives)
+- **Virtualization:** TanStack React Virtual
+- **Icons:** Lucide React
+- **Package Manager:** Bun
+
+### Development Tools
+- **Task Runner:** Taskfile
+- **Release:** GoReleaser
+- **Linting:** ESLint, Prettier
+
 ## Architecture
 
 ```
@@ -37,10 +60,11 @@ my-app serve 2>&1 | logbro
                     ┌─────────────────────────────────────────────┐
                     │            Web Browser                      │
                     │  ┌─────────────────────────────────────┐    │
-                    │  │  TanStack Start + shadcn/ui         │    │
+                    │  │  React + TanStack Router            │    │
                     │  │  - Real-time log stream view        │    │
                     │  │  - Filtering & Search               │    │
                     │  │  - Log level highlighting           │    │
+                    │  │  - Virtualized log rendering        │    │
                     │  └─────────────────────────────────────┘    │
                     └─────────────────────────────────────────────┘
 ```
@@ -69,33 +93,32 @@ my-app serve 2>&1 | logbro
   - Ingestion timestamp
 
 ### 3. Web Interface
-- Auto-opens browser on startup (configurable)
-- Real-time log streaming with auto-scroll
+- Auto-opens browser on startup (configurable with `-no-open` flag)
+- Real-time log streaming via WebSocket with auto-scroll
 - Pause/Resume streaming
+- Scroll-to-bottom button when scrolled up
 - Log level color coding:
   - DEBUG: gray
   - INFO: default/white
   - WARN: yellow
   - ERROR: red
   - FATAL: red bold
-- Timestamp display (toggleable)
 - Line numbers
-- Word wrap toggle
-- Dark/Light theme support
+- Virtualized rendering for large log volumes (TanStack Virtual)
 
 ### 4. Filtering & Search
 - Full-text search across all log entries
-- Filter by log level (multi-select)
-- Regex search support
-- Highlight matching terms
-- Filter persistence during session
+- Filter by log level (multi-select checkboxes)
+- Regex search support (toggleable)
+- Highlight matching search terms
+- Client-side filtering with server-side WebSocket filter subscription
 
 ### 5. Additional Features
-- Copy single log line to clipboard
-- Copy all visible (filtered) logs
-- Export logs to file (JSON/plain text)
-- Keyboard shortcuts for common actions
-- Connection status indicator
+- Double-click to copy log line to clipboard
+- Clear logs action
+- Connection status indicator (WebSocket state)
+- Stdin stream status (streaming/ended)
+- Log count display
 
 ## Technical Specification
 
@@ -106,11 +129,11 @@ my-app serve 2>&1 | logbro
 logbro [flags]
 
 Flags:
-  -p, --port int        HTTP server port (default: 8080)
-  -b, --buffer int      Max log lines to buffer (default: 10000)
-  -n, --no-open         Don't auto-open browser
-  -h, --help            Show help
-  -v, --version         Show version
+  -port int        HTTP server port (default: 8080)
+  -buffer int      Max log lines to buffer (default: 10000)
+  -no-open         Don't auto-open browser
+  -dev             Development mode (disable static file serving)
+  -version         Show version
 ```
 
 #### Data Models
@@ -248,93 +271,123 @@ Server → Client Messages:
 }
 ```
 
-### Frontend (TanStack Start + shadcn/ui)
+### Frontend (React + Vite)
 
 #### Pages
 - `/` - Main log viewer (single page application)
 
 #### Components
-- `LogViewer` - Main container component
+- `LogViewer` - Main orchestrator component
 - `LogToolbar` - Search, filter controls, actions
-- `LogList` - Virtualized log line list
-- `LogLine` - Individual log entry display
-- `FilterPanel` - Level filters, regex toggle
-- `StatusBar` - Connection status, stats
-- `SettingsDialog` - Theme, display preferences
+- `LogList` - Virtualized log line list (TanStack Virtual)
+- `LogLine` - Individual log entry with level coloring and highlighting
+- `StatusBar` - Connection status, stdin status, log count
+
+#### Hooks
+- `use-logs` - Log state management, filtering logic
+- `use-websocket` - WebSocket connection, reconnection handling, message processing
 
 #### State Management
-- TanStack Query for REST API calls
-- React state for WebSocket connection and real-time logs
-- Local storage for user preferences (theme, filters)
+- React `useState` and `useCallback` for local state
+- Custom hooks for log and WebSocket state
+- No external state management library
 
 #### Key Dependencies
 ```json
 {
-  "@tanstack/react-start": "latest",
-  "@tanstack/react-query": "latest",
-  "@tanstack/react-virtual": "latest",
-  "tailwindcss": "latest",
-  "shadcn/ui": "latest"
+  "@tanstack/react-router": "^1.132.0",
+  "@tanstack/react-virtual": "^3.13.18",
+  "react": "^19.2.0",
+  "tailwindcss": "^4.0.6",
+  "lucide-react": "^0.562.0"
 }
 ```
+
+#### UI Components (shadcn/ui)
+- Button, Input, Checkbox, Badge
+- Popover (for filter dropdown)
+- Built on Radix UI primitives
 
 ## Build & Distribution
 
 ### Development
 ```bash
-# Backend
-cd backend && go run .
+# Run both backend and frontend with hot-reload
+task dev
 
-# Frontend (separate terminal)
-cd frontend && bun run dev
+# Backend only (for piping logs)
+task dev:backend
+
+# Frontend only (Vite dev server)
+task dev:frontend
 ```
 
+Development mode:
+- Backend runs on port 8080 with `-dev` flag (no static file serving)
+- Frontend runs on port 8081 (Vite dev server)
+- Vite proxies API/WebSocket requests to backend
+
 ### Production Build
-- Frontend builds to static files
-- Static files embedded in Go binary using `embed`
+- Frontend builds to static files in `frontend/dist/`
+- Static files embedded in Go binary using `//go:embed` directive
 - Single binary distribution
 
 ```bash
-# Build produces single binary
-go build -o logbro
+# Full build (frontend + backend)
+task build
 
 # Usage
 ./logbro
 ```
 
+### Release
+- GoReleaser for cross-platform builds and releases
+- Homebrew tap available
+
 ## Project Structure
 
 ```
 logbro/
-├── main.go                 # Entry point
+├── cmd/
+│   └── logbro/
+│       └── main.go             # Entry point, stdin reader, browser opener
 ├── internal/
 │   ├── server/
-│   │   ├── server.go       # HTTP server setup
-│   │   ├── handlers.go     # REST API handlers
-│   │   └── websocket.go    # WebSocket handling
+│   │   ├── server.go           # HTTP server setup, static file embedding
+│   │   ├── handlers.go         # REST API handlers
+│   │   └── websocket.go        # WebSocket hub and client management
 │   ├── buffer/
-│   │   └── ring.go         # Ring buffer implementation
+│   │   └── ring.go             # Ring buffer with filtering
 │   ├── parser/
-│   │   └── parser.go       # Log parsing logic
+│   │   └── parser.go           # Log parsing (JSON, text patterns)
 │   └── models/
-│       └── models.go       # Data structures
+│       └── models.go           # Data structures
 ├── frontend/
-│   ├── app/
+│   ├── src/
 │   │   ├── routes/
-│   │   │   └── index.tsx   # Main page
+│   │   │   ├── __root.tsx      # Root layout wrapper
+│   │   │   └── index.tsx       # Main page
 │   │   ├── components/
 │   │   │   ├── log-viewer.tsx
 │   │   │   ├── log-toolbar.tsx
 │   │   │   ├── log-list.tsx
 │   │   │   ├── log-line.tsx
-│   │   │   └── ...
+│   │   │   ├── status-bar.tsx
+│   │   │   └── ui/             # shadcn/ui components
 │   │   ├── hooks/
 │   │   │   ├── use-websocket.ts
 │   │   │   └── use-logs.ts
-│   │   └── lib/
-│   │       └── api.ts
+│   │   ├── lib/
+│   │   │   ├── api.ts          # REST API client
+│   │   │   └── utils.ts
+│   │   ├── main.tsx
+│   │   └── styles.css
+│   ├── vite.config.ts
+│   ├── components.json         # shadcn/ui config
 │   ├── package.json
-│   └── tsconfig.json
+│   └── index.html
+├── taskfile.yml                # Task automation
+├── .goreleaser.yaml            # Release configuration
 ├── go.mod
 ├── go.sum
 ├── SPEC.md
@@ -343,6 +396,11 @@ logbro/
 
 ## Future Considerations (Out of Scope for v1)
 
+- Dark/Light theme toggle
+- Timestamp display toggle
+- Word wrap toggle
+- Export logs to file (JSON/plain text)
+- Keyboard shortcuts
 - Multiple input sources (file watching, TCP/UDP listeners)
 - Log persistence to disk
 - Multiple simultaneous viewers with shared state
