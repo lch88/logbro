@@ -1,9 +1,12 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import type { LogEntry } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { X, Copy, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useState } from 'react'
+
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text)
+}
 
 interface LogDetailPanelProps {
   entry: LogEntry
@@ -18,11 +21,46 @@ const levelColors: Record<string, string> = {
   FATAL: 'text-red-500',
 }
 
+function FieldRow({ fieldKey, value }: { fieldKey: string; value: unknown }) {
+  const [copied, setCopied] = useState(false)
+  const isObject = typeof value === 'object' && value !== null
+  const displayValue = isObject ? JSON.stringify(value) : String(value)
+
+  const handleCopy = () => {
+    copyToClipboard(displayValue)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1000)
+  }
+
+  return (
+    <tr className="group align-top">
+      <td className="text-muted-foreground pr-3 py-0.5 whitespace-nowrap">
+        {fieldKey}
+      </td>
+      <td className="py-0.5 break-all">
+        {displayValue}
+        <button
+          onClick={handleCopy}
+          className={cn(
+            'inline-flex ml-1 p-0.5 rounded align-middle',
+            copied
+              ? 'text-green-500'
+              : 'text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted'
+          )}
+          title="Copy value"
+        >
+          {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+        </button>
+      </td>
+    </tr>
+  )
+}
+
 export function LogDetailPanel({ entry, onClose }: LogDetailPanelProps) {
   const [copied, setCopied] = useState(false)
 
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(entry.raw)
+  const handleCopyRaw = useCallback(() => {
+    copyToClipboard(entry.raw)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }, [entry.raw])
@@ -64,6 +102,45 @@ export function LogDetailPanel({ entry, onClose }: LogDetailPanelProps) {
           )}
         </div>
 
+        {/* Message */}
+        {entry.parsed?.message && entry.parsed.message !== entry.raw && (
+          <div className="space-y-2">
+            <span className="text-xs text-muted-foreground">Message</span>
+            <pre className="font-mono text-xs bg-muted/50 p-3 rounded-md whitespace-pre-wrap break-all">
+              {entry.parsed.message}
+            </pre>
+          </div>
+        )}
+
+        {/* Parsed fields */}
+        {entry.parsed?.fields && Object.keys(entry.parsed.fields).length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                Fields ({Object.keys(entry.parsed.fields).length})
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => copyToClipboard(JSON.stringify(entry.parsed!.fields, null, 2))}
+                className="h-6 px-2 text-xs"
+              >
+                <Copy className="h-3 w-3 mr-1" />
+                Copy all
+              </Button>
+            </div>
+            <div className="bg-muted/50 rounded-md px-3 py-2">
+              <table className="text-xs font-mono">
+                <tbody>
+                  {Object.entries(entry.parsed.fields).map(([key, value]) => (
+                    <FieldRow key={key} fieldKey={key} value={value} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Raw content */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -71,7 +148,7 @@ export function LogDetailPanel({ entry, onClose }: LogDetailPanelProps) {
             <Button
               size="sm"
               variant="ghost"
-              onClick={handleCopy}
+              onClick={handleCopyRaw}
               className="h-6 px-2 text-xs"
             >
               {copied ? (
@@ -91,33 +168,6 @@ export function LogDetailPanel({ entry, onClose }: LogDetailPanelProps) {
             {entry.raw}
           </pre>
         </div>
-
-        {/* Parsed fields */}
-        {entry.parsed?.fields && Object.keys(entry.parsed.fields).length > 0 && (
-          <div className="space-y-2">
-            <span className="text-xs text-muted-foreground">Fields</span>
-            <div className="bg-muted/50 p-3 rounded-md space-y-1">
-              {Object.entries(entry.parsed.fields).map(([key, value]) => (
-                <div key={key} className="flex gap-2 text-xs font-mono">
-                  <span className="text-muted-foreground">{key}:</span>
-                  <span className="break-all">
-                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Message if different from raw */}
-        {entry.parsed?.message && entry.parsed.message !== entry.raw && (
-          <div className="space-y-2">
-            <span className="text-xs text-muted-foreground">Message</span>
-            <pre className="font-mono text-xs bg-muted/50 p-3 rounded-md whitespace-pre-wrap break-all">
-              {entry.parsed.message}
-            </pre>
-          </div>
-        )}
       </div>
     </div>
   )

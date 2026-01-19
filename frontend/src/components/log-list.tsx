@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { LogEntry } from '@/lib/api'
 import { LogLine } from './log-line'
@@ -21,6 +21,15 @@ export function LogList({ logs, searchTerm, maxLines, selectedId, onSelect }: Lo
     overscan: 20,
     measureElement: (element) => element.getBoundingClientRect().height,
   })
+
+  // Scroll selected item into view when selectedId changes
+  useEffect(() => {
+    if (selectedId === undefined) return
+    const index = logs.findIndex((l) => l.id === selectedId)
+    if (index !== -1) {
+      virtualizer.scrollToIndex(index, { align: 'auto' })
+    }
+  }, [selectedId, logs, virtualizer])
 
   const items = virtualizer.getVirtualItems()
 

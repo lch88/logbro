@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLogs } from '@/hooks/use-logs'
 import { useSettings } from '@/hooks/use-settings'
 import type { LogEntry } from '@/lib/api'
@@ -63,8 +63,37 @@ export function LogViewer() {
     setSelectedLog(null)
   }
 
+  // Keyboard navigation for log list
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (logs.length === 0) return
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        const currentIndex = selectedLog
+          ? logs.findIndex((l) => l.id === selectedLog.id)
+          : -1
+
+        let nextIndex: number
+        if (e.key === 'ArrowDown') {
+          nextIndex = currentIndex < logs.length - 1 ? currentIndex + 1 : currentIndex
+        } else {
+          nextIndex = currentIndex > 0 ? currentIndex - 1 : 0
+        }
+
+        const nextLog = logs[nextIndex]
+        if (nextLog) {
+          setSelectedLog(nextLog)
+        }
+      } else if (e.key === 'Escape' && selectedLog) {
+        setSelectedLog(null)
+      }
+    },
+    [logs, selectedLog]
+  )
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" tabIndex={0} onKeyDown={handleKeyDown}>
       <LogToolbar
         filter={filter}
         onFilterChange={applyFilter}

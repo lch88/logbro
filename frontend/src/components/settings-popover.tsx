@@ -1,4 +1,4 @@
-import type { Settings } from '@/hooks/use-settings'
+import { type Settings, MONO_FONTS } from '@/hooks/use-settings'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,6 +9,13 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Settings as SettingsIcon } from 'lucide-react'
 
 interface SettingsPopoverProps {
@@ -27,14 +34,14 @@ export function SettingsPopover({
           <SettingsIcon className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end">
+      <PopoverContent align="end" className="w-64">
         <PopoverHeader>
           <PopoverTitle>Settings</PopoverTitle>
         </PopoverHeader>
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-4">
             <Label htmlFor="maxLines" className="text-xs whitespace-nowrap">
-              Max lines per entry
+              Max lines
             </Label>
             <Input
               id="maxLines"
@@ -48,8 +55,31 @@ export function SettingsPopover({
                   onSettingChange('maxLinesPerEntry', value)
                 }
               }}
-              className="w-20 text-right"
+              className="w-16 text-right"
             />
+          </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <Label className="text-xs">Font</Label>
+            <Select
+              value={settings.monoFont}
+              onValueChange={(value) => onSettingChange('monoFont', value as Settings['monoFont'])}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MONO_FONTS.map((font) => (
+                  <SelectItem
+                    key={font.id}
+                    value={font.id}
+                    style={{ fontFamily: `${font.family}, monospace` }}
+                  >
+                    {font.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </PopoverContent>
