@@ -22,15 +22,30 @@ type Server struct {
 	hub        *Hub
 	startTime  time.Time
 	port       int
+	devMode    bool
+}
+
+// Option configures a Server
+type Option func(*Server)
+
+// WithDevMode enables development mode (no static file serving)
+func WithDevMode() Option {
+	return func(s *Server) {
+		s.devMode = true
+	}
 }
 
 // New creates a new server instance
-func New(buf *buffer.Ring, port int) *Server {
+func New(buf *buffer.Ring, port int, opts ...Option) *Server {
 	s := &Server{
 		buffer:    buf,
 		hub:       NewHub(),
 		startTime: time.Now(),
 		port:      port,
+	}
+
+	for _, opt := range opts {
+		opt(s)
 	}
 
 	mux := http.NewServeMux()
@@ -44,14 +59,15 @@ func New(buf *buffer.Ring, port int) *Server {
 	// WebSocket
 	mux.HandleFunc("GET /ws/logs", s.handleWebSocket)
 
-	// Static files (embedded frontend) - SPA with fallback to index.html
-	staticFS, err := fs.Sub(staticFiles, "static")
-	if err != nil {
-		log.Printf("Warning: could not load static files: %v", err)
-		// Serve a simple placeholder if static files aren't embedded
-		mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "text/html")
-			w.Write([]byte(`<!DOCTYPE html>
+	// Static files (embedded frontend) - skip in dev mode (Vite serves frontend)
+	if !s.devMode {
+		staticFS, err := fs.Sub(staticFiles, "static")
+		if err != nil {
+			log.Printf("Warning: could not load static files: %v", err)
+			// Serve a simple placeholder if static files aren't embedded
+			mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "text/html")
+				w.Write([]byte(`<!DOCTYPE html>
 <html>
 <head><title>LogBro</title></head>
 <body>
@@ -59,35 +75,36 @@ func New(buf *buffer.Ring, port int) *Server {
 <p>Frontend not embedded. Run with embedded frontend or start frontend dev server.</p>
 </body>
 </html>`))
-		})
-	} else {
-		// SPA handler: serve static files, fallback to index.html for client-side routing
-		mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-			path := r.URL.Path
-			if path == "/" {
-				path = "/index.html"
-			}
+			})
+		} else {
+			// SPA handler: serve static files, fallback to index.html for client-side routing
+			mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+				path := r.URL.Path
+				if path == "/" {
+					path = "/index.html"
+				}
 
-			// Try to open the file
-			file, err := staticFS.Open(path[1:]) // Remove leading /
-			if err != nil {
-				// File not found, serve index.html for SPA routing
-				indexFile, _ := staticFS.Open("index.html")
-				if indexFile != nil {
-					defer indexFile.Close()
-					w.Header().Set("Content-Type", "text/html")
-					content, _ := fs.ReadFile(staticFS, "index.html")
-					w.Write(content)
+				// Try to open the file
+				file, err := staticFS.Open(path[1:]) // Remove leading /
+				if err != nil {
+					// File not found, serve index.html for SPA routing
+					indexFile, _ := staticFS.Open("index.html")
+					if indexFile != nil {
+						defer indexFile.Close()
+						w.Header().Set("Content-Type", "text/html")
+						content, _ := fs.ReadFile(staticFS, "index.html")
+						w.Write(content)
+						return
+					}
+					http.NotFound(w, r)
 					return
 				}
-				http.NotFound(w, r)
-				return
-			}
-			file.Close()
+				file.Close()
 
-			// File exists, serve it with the file server
-			http.FileServer(http.FS(staticFS)).ServeHTTP(w, r)
-		})
+				// File exists, serve it with the file server
+				http.FileServer(http.FS(staticFS)).ServeHTTP(w, r)
+			})
+		}
 	}
 
 	s.httpServer = &http.Server{

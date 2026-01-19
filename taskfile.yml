@@ -1,0 +1,47 @@
+version: '3'
+
+tasks:
+  dev:
+    desc: Run both frontend and backend (supports stdin piping)
+    cmds:
+      - task dev:frontend &
+      - go run ./cmd/logbro -dev
+    interactive: true
+
+  dev:backend:
+    desc: Run Go backend only (for piping logs)
+    cmds:
+      - go run ./cmd/logbro -dev
+    interactive: true
+
+  dev:frontend:
+    desc: Run Vite dev server with HMR
+    dir: frontend
+    cmds:
+      - bun run dev
+
+  build:
+    desc: Build production binary with embedded frontend
+    cmds:
+      - task: build:frontend
+      - task: build:copy
+      - go build -o logbro ./cmd/logbro
+
+  build:frontend:
+    desc: Build frontend for production
+    dir: frontend
+    cmds:
+      - bun run build
+
+  build:copy:
+    desc: Copy frontend build to static directory
+    cmds:
+      - rm -rf internal/server/static
+      - cp -r frontend/dist internal/server/static
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -f logbro
+      - rm -rf frontend/dist
+      - rm -rf internal/server/static

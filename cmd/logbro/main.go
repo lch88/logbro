@@ -25,6 +25,7 @@ func main() {
 	port := flag.Int("port", 8080, "HTTP server port")
 	bufSize := flag.Int("buffer", 10000, "Max log lines to buffer")
 	noOpen := flag.Bool("no-open", false, "Don't auto-open browser")
+	devMode := flag.Bool("dev", false, "Development mode (API only, no static files)")
 	version := flag.Bool("version", false, "Show version")
 
 	flag.Parse()
@@ -37,13 +38,18 @@ func main() {
 	// Initialize components
 	ringBuf := buffer.New(*bufSize)
 	logParser := parser.New()
-	srv := server.New(ringBuf, *port)
+
+	var opts []server.Option
+	if *devMode {
+		opts = append(opts, server.WithDevMode())
+	}
+	srv := server.New(ringBuf, *port, opts...)
 
 	// Start stdin reader
 	go readStdin(ringBuf, logParser, srv.Hub())
 
-	// Open browser
-	if !*noOpen {
+	// Open browser (skip in dev mode - use Vite's port instead)
+	if !*noOpen && !*devMode {
 		go func() {
 			openBrowser(fmt.Sprintf("http://localhost:%d", *port))
 		}()
