@@ -1,6 +1,9 @@
 # Binary
 logbro
 
+# GoReleaser
+dist/
+
 # Frontend
 frontend/node_modules/
 frontend/dist/
