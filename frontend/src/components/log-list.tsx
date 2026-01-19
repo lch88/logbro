@@ -6,9 +6,12 @@ import { LogLine } from './log-line'
 interface LogListProps {
   logs: LogEntry[]
   searchTerm?: string
+  maxLines?: number
+  selectedId?: number
+  onSelect?: (entry: LogEntry) => void
 }
 
-export function LogList({ logs, searchTerm }: LogListProps) {
+export function LogList({ logs, searchTerm, maxLines, selectedId, onSelect }: LogListProps) {
   const parentRef = useRef<HTMLDivElement>(null)
 
   const virtualizer = useVirtualizer({
@@ -22,7 +25,7 @@ export function LogList({ logs, searchTerm }: LogListProps) {
   const items = virtualizer.getVirtualItems()
 
   return (
-    <div ref={parentRef} className="h-full overflow-auto font-mono text-sm">
+    <div ref={parentRef} className="h-full overflow-auto font-mono text-xs">
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,
@@ -50,6 +53,9 @@ export function LogList({ logs, searchTerm }: LogListProps) {
                 entry={log}
                 lineNumber={virtualRow.index + 1}
                 searchTerm={searchTerm}
+                maxLines={maxLines}
+                selected={log.id === selectedId}
+                onClick={() => onSelect?.(log)}
               />
             </div>
           )

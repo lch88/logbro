@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import type { LogFilter } from '@/lib/api'
+import type { Settings } from '@/hooks/use-settings'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Toggle } from '@/components/ui/toggle'
+import { SettingsPopover } from './settings-popover'
 import {
   Pause,
   Play,
@@ -20,6 +22,8 @@ interface LogToolbarProps {
   onPauseToggle: () => void
   onClear: () => void
   onScrollToBottom: () => void
+  settings: Settings
+  onSettingChange: <K extends keyof Settings>(key: K, value: Settings[K]) => void
 }
 
 const LOG_LEVELS = ['DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'] as const
@@ -39,6 +43,8 @@ export function LogToolbar({
   onPauseToggle,
   onClear,
   onScrollToBottom,
+  settings,
+  onSettingChange,
 }: LogToolbarProps) {
   const [search, setSearch] = useState(filter.search || '')
   const [regex, setRegex] = useState(filter.regex || false)
@@ -145,6 +151,7 @@ export function LogToolbar({
         >
           <Trash2 className="h-4 w-4" />
         </Button>
+        <SettingsPopover settings={settings} onSettingChange={onSettingChange} />
       </div>
     </div>
   )

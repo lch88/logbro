@@ -6,6 +6,9 @@ interface LogLineProps {
   entry: LogEntry
   lineNumber: number
   searchTerm?: string
+  maxLines?: number
+  selected?: boolean
+  onClick?: () => void
 }
 
 const levelColors: Record<string, string> = {
@@ -24,6 +27,9 @@ export const LogLine = memo(function LogLine({
   entry,
   lineNumber,
   searchTerm,
+  maxLines = 1,
+  selected = false,
+  onClick,
 }: LogLineProps) {
   const level = entry.parsed?.level || ''
   const colorClass = levelColors[level] || 'text-foreground'
@@ -31,6 +37,10 @@ export const LogLine = memo(function LogLine({
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(entry.raw)
   }, [entry.raw])
+
+  const handleClick = useCallback(() => {
+    onClick?.()
+  }, [onClick])
 
   const highlightSearch = (text: string) => {
     if (!searchTerm) return text
@@ -55,15 +65,24 @@ export const LogLine = memo(function LogLine({
     <div
       className={cn(
         'flex items-start py-0.5 px-2 hover:bg-muted/50 border-b border-border/20 group cursor-pointer',
-        colorClass
+        colorClass,
+        selected && 'bg-muted/80 hover:bg-muted/80'
       )}
+      onClick={handleClick}
       onDoubleClick={handleCopy}
-      title="Double-click to copy"
+      title="Click to view details, double-click to copy"
     >
       <span className="w-14 shrink-0 text-muted-foreground text-right pr-3 select-none tabular-nums">
         {lineNumber}
       </span>
-      <span className="whitespace-pre-wrap break-all flex-1">
+      <span
+        className="whitespace-pre-wrap break-all flex-1 overflow-hidden"
+        style={{
+          display: '-webkit-box',
+          WebkitLineClamp: maxLines,
+          WebkitBoxOrient: 'vertical',
+        }}
+      >
         {highlightSearch(entry.raw)}
       </span>
     </div>
