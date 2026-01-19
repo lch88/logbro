@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useLogs } from '~/hooks/use-logs'
+import { useLogs } from '@/hooks/use-logs'
 import { LogToolbar } from './log-toolbar'
 import { LogList } from './log-list'
 import { StatusBar } from './status-bar'

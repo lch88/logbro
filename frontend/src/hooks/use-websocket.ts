@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { LogEntry, LogFilter } from '~/lib/api'
+import type { LogEntry, LogFilter } from '@/lib/api'
 
 interface WSMessage {
   type: 'log' | 'status' | 'pong'

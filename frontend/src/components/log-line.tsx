@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react'
-import { cn } from '~/lib/utils'
-import type { LogEntry } from '~/lib/api'
+import { cn } from '@/lib/utils'
+import type { LogEntry } from '@/lib/api'
 
 interface LogLineProps {
   entry: LogEntry

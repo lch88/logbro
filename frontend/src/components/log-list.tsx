@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import type { LogEntry } from '~/lib/api'
+import type { LogEntry } from '@/lib/api'
 import { LogLine } from './log-line'
 
 interface LogListProps {

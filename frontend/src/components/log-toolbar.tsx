@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import type { LogFilter } from '~/lib/api'
-import { Button } from './ui/button'
-import { Input } from './ui/input'
-import { Toggle } from './ui/toggle'
+import type { LogFilter } from '@/lib/api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Toggle } from '@/components/ui/toggle'
 import {
   Pause,
   Play,
@@ -11,7 +11,7 @@ import {
   ArrowDown,
   X,
 } from 'lucide-react'
-import { cn } from '~/lib/utils'
+import { cn } from '@/lib/utils'
 
 interface LogToolbarProps {
   filter: LogFilter

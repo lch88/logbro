@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { LogEntry, LogFilter } from '~/lib/api'
-import { fetchLogs } from '~/lib/api'
+import type { LogEntry, LogFilter } from '@/lib/api'
+import { fetchLogs } from '@/lib/api'
 import { useWebSocket } from './use-websocket'
 
 const MAX_LOGS = 10000
