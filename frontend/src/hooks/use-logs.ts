@@ -18,6 +18,10 @@ export function useLogs() {
     if (pausedRef.current) return
 
     setLogs((prev) => {
+      // Deduplicate by ID to avoid duplicates from REST/WebSocket race
+      if (prev.some((e) => e.id === entry.id)) {
+        return prev
+      }
       const next = [...prev, entry]
       if (next.length > MAX_LOGS) {
         return next.slice(-MAX_LOGS)
