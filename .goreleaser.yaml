@@ -69,3 +69,26 @@ notarize:
         key_id: "{{.Env.MACOS_NOTARY_KEY_ID}}"
         key: "{{.Env.MACOS_NOTARY_KEY}}"
         wait: false
+
+homebrew_casks:
+  - name: logbro
+    url:      
+      template: "https://github.com/lch88/logbro/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+      verified: "github.com/lch88/logbro/"
+      using: ":homebrew_curl"
+      cookies:
+        license: "accept-backup"
+      headers:
+        - "X-Version: {{ .Version }}"
+    commit_msg_template: "Brew cask update for {{ .ProjectName }} version {{ .Tag }}"
+    directory: Casks    
+    homepage: "https://github.com/lch88/logbro"
+    description: "Log viewer for stdin logs"
+    skip_upload: true 
+    repository:      
+      owner: lch88
+      name: homebrew-tap
+      branch: main            
+    commit_author:
+      name: lch88
+      email: lch88@gmail.com
