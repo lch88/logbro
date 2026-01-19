@@ -12,9 +12,9 @@ import (
 	"runtime"
 	"syscall"
 
-	"logbro/internal/buffer"
-	"logbro/internal/parser"
-	"logbro/internal/server"
+	"github.com/lch88/logbro/internal/buffer"
+	"github.com/lch88/logbro/internal/parser"
+	"github.com/lch88/logbro/internal/server"
 )
 
 var (

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"logbro/internal/models"
+	"github.com/lch88/logbro/internal/models"
 )
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {

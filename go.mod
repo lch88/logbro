@@ -1,4 +1,4 @@
-module logbro
+module github.com/lch88/logbro
 
 go 1.25.4
 

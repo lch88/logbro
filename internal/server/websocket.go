@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"logbro/internal/models"
+	"github.com/lch88/logbro/internal/models"
 )
 
 var upgrader = websocket.Upgrader{

@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"logbro/internal/buffer"
+	"github.com/lch88/logbro/internal/buffer"
 )
 
 //go:embed static/*

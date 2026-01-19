@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"logbro/internal/models"
+	"github.com/lch88/logbro/internal/models"
 )
 
 // Common log level patterns

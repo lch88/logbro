@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"logbro/internal/models"
+	"github.com/lch88/logbro/internal/models"
 )
 
 // Ring is a thread-safe ring buffer for log entries
