@@ -18,6 +18,12 @@ var levelPatterns = map[string]*regexp.Regexp{
 	"FATAL": regexp.MustCompile(`(?i)\b(FATAL|CRITICAL|CRIT|PANIC)\b`),
 }
 
+// Docker compose log format: "service-name  | actual log content"
+var dockerComposePattern = regexp.MustCompile(`^([a-zA-Z0-9_-]+(?:-\d+)?)\s+\|\s*(.*)$`)
+
+// ANSI escape code pattern
+var ansiPattern = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
 // Level priority for ordering (higher = more severe)
 var levelPriority = map[string]int{
 	"DEBUG": 1,
@@ -51,6 +57,27 @@ func (p *Parser) Parse(line string) models.LogEntry {
 	entry := models.LogEntry{
 		Timestamp: time.Now(),
 		Raw:       line,
+	}
+
+	// Check for Docker Compose format first
+	// Strip ANSI codes before matching
+	cleaned := ansiPattern.ReplaceAllString(line, "")
+	if match := dockerComposePattern.FindStringSubmatch(cleaned); match != nil {
+		source := match[1]
+		content := match[2]
+
+		// Try to parse the content as JSON
+		if parsed := p.parseJSON(content); parsed != nil {
+			parsed.Source = source // Docker source takes precedence
+			entry.Parsed = parsed
+			return entry
+		}
+
+		// Try text parsing on the content
+		parsed := p.parseText(content)
+		parsed.Source = source
+		entry.Parsed = parsed
+		return entry
 	}
 
 	// Try JSON first
