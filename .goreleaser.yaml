@@ -14,10 +14,10 @@ metadata:
 before:
   hooks:
     # Build frontend and copy to static directory for embedding
-    - cd frontend && bun install
-    - cd frontend && bun run build
-    - rm -rf internal/server/static
-    - cp -r frontend/dist internal/server/static
+    - sh -c "cd frontend && bun install"
+    - sh -c "cd frontend && bun run build"
+    - sh -c "rm -rf internal/server/static"
+    - sh -c "cp -r frontend/dist internal/server/static"
     # You may remove this if you don't use go modules.
     - go mod tidy
     # you may remove this if you don't need go generate
