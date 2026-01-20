@@ -31,6 +31,10 @@ jobs:
               uses: actions/setup-go@v5
               with:
                   go-version: stable
+            - name: Set up Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
             - name: Run GoReleaser
               uses: goreleaser/goreleaser-action@v6
               with:
