@@ -14,10 +14,8 @@ metadata:
 before:
   hooks:
     # Build frontend and copy to static directory for embedding
-    - cmd: bun install
-      dir: frontend
-    - cmd: bun run build
-      dir: frontend
+    - cd frontend && bun install
+    - cd frontend && bun run build
     - rm -rf internal/server/static
     - cp -r frontend/dist internal/server/static
     # You may remove this if you don't use go modules.
