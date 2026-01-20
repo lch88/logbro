@@ -6,6 +6,7 @@ import { LogToolbar } from './log-toolbar'
 import { LogList } from './log-list'
 import { LogDetailPanel } from './log-detail-panel'
 import { StatusBar } from './status-bar'
+import { SourceTabs } from './source-tabs'
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -15,6 +16,7 @@ import {
 export function LogViewer() {
   const {
     logs,
+    sources,
     filter,
     paused,
     stdinOpen,
@@ -63,6 +65,26 @@ export function LogViewer() {
     setSelectedLog(null)
   }
 
+  // Source filtering handlers
+  const handleSourceToggle = useCallback(
+    (source: string) => {
+      const currentSources = filter.sources || []
+      const newSources = currentSources.includes(source)
+        ? currentSources.filter((s) => s !== source)
+        : [...currentSources, source]
+      applyFilter({ ...filter, sources: newSources })
+    },
+    [filter, applyFilter]
+  )
+
+  const handleClearSourceFilter = useCallback(() => {
+    applyFilter({ ...filter, sources: [] })
+  }, [filter, applyFilter])
+
+  // Determine if we should show source badges in log lines
+  // Show them only if there are multiple sources
+  const showSourceBadges = sources.length > 1
+
   // Keyboard navigation for log list
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -105,6 +127,15 @@ export function LogViewer() {
         onSettingChange={updateSetting}
       />
 
+      {sources.length > 1 && (
+        <SourceTabs
+          sources={sources}
+          selectedSources={filter.sources || []}
+          onSourceToggle={handleSourceToggle}
+          onClearAll={handleClearSourceFilter}
+        />
+      )}
+
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel defaultSize={selectedLog ? "60%" : "100%"} minSize="20%">
           <div
@@ -127,6 +158,8 @@ export function LogViewer() {
                 maxLines={settings.maxLinesPerEntry}
                 selectedId={selectedLog?.id}
                 onSelect={handleSelectLog}
+                showSource={showSourceBadges}
+                columns={settings.columns}
               />
             )}
           </div>

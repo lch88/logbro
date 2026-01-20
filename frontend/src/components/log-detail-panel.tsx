@@ -3,6 +3,7 @@ import type { LogEntry } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { X, Copy, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getSourceColorClass } from './source-tabs'
 
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text)
@@ -97,7 +98,14 @@ export function LogDetailPanel({ entry, onClose }: LogDetailPanelProps) {
           {entry.parsed?.source && (
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground w-20">Source:</span>
-              <span className="font-mono">{entry.parsed.source}</span>
+              <span
+                className={cn(
+                  'px-2 py-0.5 rounded text-xs font-medium border',
+                  getSourceColorClass(entry.parsed.source)
+                )}
+              >
+                {entry.parsed.source}
+              </span>
             </div>
           )}
         </div>

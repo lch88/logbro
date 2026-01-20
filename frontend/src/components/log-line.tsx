@@ -1,6 +1,8 @@
 import { memo, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import type { LogEntry } from '@/lib/api'
+import type { ColumnVisibility } from '@/hooks/use-settings'
+import { getSourceColorClass } from './source-tabs'
 
 interface LogLineProps {
   entry: LogEntry
@@ -9,6 +11,8 @@ interface LogLineProps {
   maxLines?: number
   selected?: boolean
   onClick?: () => void
+  showSource?: boolean
+  columns?: ColumnVisibility
 }
 
 const levelColors: Record<string, string> = {
@@ -46,6 +50,12 @@ function formatFields(fields: Record<string, unknown> | undefined): string {
     .join(' ')
 }
 
+const defaultColumns: ColumnVisibility = {
+  timestamp: true,
+  level: true,
+  fields: true,
+}
+
 export const LogLine = memo(function LogLine({
   entry,
   lineNumber,
@@ -53,14 +63,14 @@ export const LogLine = memo(function LogLine({
   maxLines = 1,
   selected = false,
   onClick,
+  showSource = true,
+  columns = defaultColumns,
 }: LogLineProps) {
   const parsed = entry.parsed
   const level = parsed?.level || ''
+  const source = parsed?.source
   const levelColor = levelColors[level] || ''
   const levelBg = levelBgColors[level] || ''
-
-  // Determine if this is a structured log
-  const isStructured = !!(parsed?.level || parsed?.message || parsed?.time)
 
   // Get display values
   const time = formatTime(parsed?.time)
@@ -94,38 +104,7 @@ export const LogLine = memo(function LogLine({
     }
   }
 
-  // For raw/unstructured logs, show a simpler layout
-  if (!isStructured) {
-    return (
-      <div
-        className={cn(
-          'flex items-start py-0.5 px-2 hover:bg-muted/50 border-b border-border/20 cursor-pointer',
-          selected && 'bg-muted/80 hover:bg-muted/80'
-        )}
-        onClick={handleClick}
-        onDoubleClick={handleCopy}
-        title="Click to view details, double-click to copy"
-      >
-        {/* Index */}
-        <span className="w-12 shrink-0 text-muted-foreground text-right pr-2 select-none tabular-nums">
-          {lineNumber}
-        </span>
-        {/* Raw content spans all remaining columns */}
-        <span
-          className="whitespace-pre-wrap break-all flex-1 overflow-hidden text-muted-foreground"
-          style={{
-            display: '-webkit-box',
-            WebkitLineClamp: maxLines,
-            WebkitBoxOrient: 'vertical',
-          }}
-        >
-          {highlightSearch(entry.raw)}
-        </span>
-      </div>
-    )
-  }
-
-  // Structured log layout with columns
+  // Unified layout - all messages in single column with fixed-width metadata columns
   return (
     <div
       className={cn(
@@ -142,21 +121,42 @@ export const LogLine = memo(function LogLine({
         {lineNumber}
       </span>
 
-      {/* Timestamp */}
-      <span className="w-20 shrink-0 text-muted-foreground tabular-nums pr-2">
-        {time}
-      </span>
+      {/* Source badge - fixed width for alignment */}
+      {showSource && (
+        <span className="w-28 shrink-0 mr-2">
+          {source && (
+            <span
+              className={cn(
+                'inline-block max-w-full px-1.5 py-0 rounded text-[10px] font-medium border truncate',
+                getSourceColorClass(source)
+              )}
+              title={source}
+            >
+              {source}
+            </span>
+          )}
+        </span>
+      )}
 
-      {/* Level */}
-      <span className={cn('w-14 shrink-0 font-medium pr-2', levelColor)}>
-        {level}
-      </span>
+      {/* Timestamp - fixed width, empty if not available */}
+      {columns.timestamp && (
+        <span className="w-20 shrink-0 text-muted-foreground tabular-nums pr-2">
+          {time}
+        </span>
+      )}
 
-      {/* Message */}
+      {/* Level - fixed width, empty if not available */}
+      {columns.level && (
+        <span className={cn('w-14 shrink-0 font-medium pr-2', levelColor)}>
+          {level}
+        </span>
+      )}
+
+      {/* Message - always in same column */}
       <span
         className={cn(
-          'flex-1 min-w-0 pr-2 overflow-hidden',
-          levelColor || 'text-foreground'
+          'flex-1 min-w-0 pr-2 overflow-hidden whitespace-pre-wrap break-all',
+          levelColor || 'text-muted-foreground'
         )}
         style={{
           display: '-webkit-box',
@@ -168,7 +168,7 @@ export const LogLine = memo(function LogLine({
       </span>
 
       {/* Fields */}
-      {fields && (
+      {columns.fields && fields && (
         <span
           className="shrink-0 max-w-[300px] text-muted-foreground truncate"
           title={fields}

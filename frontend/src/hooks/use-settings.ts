@@ -15,9 +15,16 @@ export const MONO_FONTS: { id: MonoFont; name: string; family: string }[] = [
   { id: 'commit-mono', name: 'Commit Mono', family: "'Commit Mono'" },
 ]
 
+export interface ColumnVisibility {
+  timestamp: boolean
+  level: boolean
+  fields: boolean
+}
+
 export interface Settings {
   maxLinesPerEntry: number
   monoFont: MonoFont
+  columns: ColumnVisibility
 }
 
 const STORAGE_KEY = 'logbro-settings'
@@ -25,6 +32,11 @@ const STORAGE_KEY = 'logbro-settings'
 const DEFAULT_SETTINGS: Settings = {
   maxLinesPerEntry: 1,
   monoFont: 'reddit-mono',
+  columns: {
+    timestamp: true,
+    level: true,
+    fields: true,
+  },
 }
 
 function loadSettings(): Settings {

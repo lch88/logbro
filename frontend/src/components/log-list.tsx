@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { LogEntry } from '@/lib/api'
+import type { ColumnVisibility } from '@/hooks/use-settings'
 import { LogLine } from './log-line'
 
 interface LogListProps {
@@ -9,9 +10,11 @@ interface LogListProps {
   maxLines?: number
   selectedId?: number
   onSelect?: (entry: LogEntry) => void
+  showSource?: boolean
+  columns?: ColumnVisibility
 }
 
-export function LogList({ logs, searchTerm, maxLines, selectedId, onSelect }: LogListProps) {
+export function LogList({ logs, searchTerm, maxLines, selectedId, onSelect, showSource = true, columns }: LogListProps) {
   const parentRef = useRef<HTMLDivElement>(null)
 
   const virtualizer = useVirtualizer({
@@ -65,6 +68,8 @@ export function LogList({ logs, searchTerm, maxLines, selectedId, onSelect }: Lo
                 maxLines={maxLines}
                 selected={log.id === selectedId}
                 onClick={() => onSelect?.(log)}
+                showSource={showSource}
+                columns={columns}
               />
             </div>
           )

@@ -16,9 +16,67 @@ export interface ParsedLog {
 export interface LogFilter {
   search?: string
   levels?: string[]
+  sources?: string[]
   regex?: boolean
   afterId?: number
   limit?: number
+}
+
+// Docker compose log format: "service-name  | actual log content"
+// Handles various spacing: "svc |msg", "svc | msg", "svc |  msg", "svc |" (empty)
+const DOCKER_COMPOSE_REGEX = /^([a-zA-Z0-9_-]+(?:-\d+)?)\s+\|\s*(.*)$/
+
+// ANSI escape code pattern (colors, formatting, etc.)
+const ANSI_ESCAPE_REGEX = /\x1b\[[0-9;]*m/g
+
+/**
+ * Strip ANSI escape codes from a string.
+ */
+function stripAnsi(str: string): string {
+  return str.replace(ANSI_ESCAPE_REGEX, '')
+}
+
+/**
+ * Parse Docker compose source from a raw log line.
+ * Returns { source, content } if matched, or null if not a docker compose format.
+ */
+export function parseDockerSource(raw: string): { source: string; content: string } | null {
+  // Strip ANSI codes before matching (Docker Compose often colorizes output)
+  const cleaned = stripAnsi(raw)
+  const match = cleaned.match(DOCKER_COMPOSE_REGEX)
+  if (match) {
+    return { source: match[1], content: match[2] }
+  }
+  return null
+}
+
+/**
+ * Enrich a log entry with parsed source if not already present.
+ * This handles Docker compose formatted logs on the frontend.
+ * When a Docker source is detected, the prefix is stripped from the message.
+ */
+export function enrichLogEntry(entry: LogEntry): LogEntry {
+  // If source is already parsed, return as-is
+  if (entry.parsed?.source) {
+    return entry
+  }
+
+  const dockerParsed = parseDockerSource(entry.raw)
+  if (dockerParsed) {
+    // Re-parse the stripped content to extract structured fields if present
+    // For now, just use the stripped content as the message
+    return {
+      ...entry,
+      parsed: {
+        ...entry.parsed,
+        source: dockerParsed.source,
+        // Always use the stripped content (without docker prefix)
+        message: dockerParsed.content,
+      },
+    }
+  }
+
+  return entry
 }
 
 export interface LogResponse {
