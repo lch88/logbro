@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
+export type Theme = 'light' | 'dark' | 'system'
+
 export type MonoFont =
   | 'google-sans-code'
   | 'inconsolata'
@@ -25,6 +27,7 @@ export interface Settings {
   maxLinesPerEntry: number
   monoFont: MonoFont
   columns: ColumnVisibility
+  theme: Theme
 }
 
 const STORAGE_KEY = 'logbro-settings'
@@ -37,6 +40,20 @@ const DEFAULT_SETTINGS: Settings = {
     level: true,
     fields: true,
   },
+  theme: 'system',
+}
+
+function applyTheme(theme: Theme): void {
+  const root = document.documentElement
+  const isDark =
+    theme === 'dark' ||
+    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+
+  if (isDark) {
+    root.classList.add('dark')
+  } else {
+    root.classList.remove('dark')
+  }
 }
 
 function loadSettings(): Settings {
@@ -72,7 +89,25 @@ export function useSettings() {
         `${font.family}, ui-monospace, SFMono-Regular, monospace`
       )
     }
+    // Apply theme
+    applyTheme(settings.theme)
   }, [settings])
+
+  // Listen for system theme changes when using 'system' theme
+  useEffect(() => {
+    if (settings.theme !== 'system') return
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleChange = () => applyTheme('system')
+
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [settings.theme])
+
+  // Apply theme on initial load
+  useEffect(() => {
+    applyTheme(loadSettings().theme)
+  }, [])
 
   const updateSetting = useCallback(
     <K extends keyof Settings>(key: K, value: Settings[K]) => {

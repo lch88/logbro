@@ -1,4 +1,4 @@
-import { Settings2 } from 'lucide-react'
+import { Settings2, Sun, Moon, Monitor } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -14,8 +14,14 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import type { Settings, MonoFont, ColumnVisibility } from '@/hooks/use-settings'
+import type { Settings, MonoFont, ColumnVisibility, Theme } from '@/hooks/use-settings'
 import { MONO_FONTS } from '@/hooks/use-settings'
+
+const THEMES: { id: Theme; name: string; icon: typeof Sun }[] = [
+  { id: 'light', name: 'Light', icon: Sun },
+  { id: 'dark', name: 'Dark', icon: Moon },
+  { id: 'system', name: 'System', icon: Monitor },
+]
 
 interface SettingsPopoverProps {
   settings: Settings
@@ -42,6 +48,28 @@ export function SettingsPopover({ settings, onSettingChange }: SettingsPopoverPr
       <PopoverContent className="w-72" align="end">
         <div className="space-y-4">
           <h4 className="font-medium text-sm">Display Settings</h4>
+
+          {/* Theme */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Theme</Label>
+            <div className="flex items-center gap-1">
+              {THEMES.map((theme) => {
+                const Icon = theme.icon
+                return (
+                  <Button
+                    key={theme.id}
+                    size="sm"
+                    variant={settings.theme === theme.id ? 'default' : 'outline'}
+                    className="h-8 flex-1 gap-1.5"
+                    onClick={() => onSettingChange('theme', theme.id)}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="text-xs">{theme.name}</span>
+                  </Button>
+                )
+              })}
+            </div>
+          </div>
 
           {/* Column visibility */}
           <div className="space-y-2">
