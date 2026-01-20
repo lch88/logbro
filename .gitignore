@@ -4,6 +4,9 @@
 # GoReleaser
 dist/
 
+# Embedded static files (generated during build)
+internal/server/static/
+
 # Frontend
 frontend/node_modules/
 frontend/dist/
