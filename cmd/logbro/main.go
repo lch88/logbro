@@ -18,7 +18,9 @@ import (
 )
 
 var (
-	Version = "dev"
+	Version   = "dev"
+	GitCommit = "unknown"
+	BuildDate = "unknown"
 )
 
 func main() {
@@ -32,6 +34,8 @@ func main() {
 
 	if *version {
 		fmt.Printf("logbro %s\n", Version)
+		fmt.Printf("  commit: %s\n", GitCommit)
+		fmt.Printf("  built:  %s\n", BuildDate)
 		return
 	}
 

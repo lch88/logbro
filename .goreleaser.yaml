@@ -27,6 +27,11 @@ builds:
   - main: ./cmd/logbro
     env:
       - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+      - -X main.GitCommit={{.ShortCommit}}
+      - -X main.BuildDate={{.Date}}
     goos:
       - linux
       - windows
