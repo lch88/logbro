@@ -5,7 +5,8 @@
 dist/
 
 # Embedded static files (generated during build)
-internal/server/static/
+internal/server/static/*
+!internal/server/static/.gitkeep
 
 # Frontend
 frontend/node_modules/
